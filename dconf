@@ -6,37 +6,30 @@ import subprocess
 
 from ansible.module_utils.basic import *
 
-DBUS_CMD = "dbus-launch --exit-with-session /usr/bin/dconf"
+DBUS_CMD = ["dbus-launch", "--exit-with-session", "/usr/bin/dconf"]
 
 def _escape_single_quotes(string):
     return re.sub("'", r"'\''", string)
 
-def _set_value(user, key, value):
+def _set_value(key, value):
 
-    command = " ".join([
-        'write', key, "'%s'" % _escape_single_quotes(value),
-    ])
+    command = ['write', key, "'%s'" % _escape_single_quotes(value)]
 
-    return _run_dbus_command(user, command)
+    return _run_dbus_command(command)
 
-def _get_value(user, key):
-    command = " ".join([
-        'read', key
-    ])
+def _get_value(key):
+    command = ['read', key]
 
-    return _run_dbus_command(user, command)
+    return _run_dbus_command(command)
 
-def _run_dbus_command(user, args):
-    return subprocess.check_output([
-        'su', '-', user , '-c', " ".join([DBUS_CMD,args])
-    ]).strip()
+def _run_dbus_command(args):
+    return subprocess.check_output(DBUS_CMD + args).strip()
 
 def main():
 
     module = AnsibleModule(
         argument_spec = {
             'state': { 'choices': ['present'], 'default': 'present' },
-            'user': { 'required': True },
             'key': { 'required': True },
             'value': { 'required': True },
         },
@@ -45,15 +38,14 @@ def main():
 
     params = module.params
     state = module.params['state']
-    user = module.params['user']
     key = module.params['key']
     value = module.params['value']
 
-    old_value = _get_value(user, key)
+    old_value = _get_value(key)
     changed = old_value != value
 
     if changed and not module.check_mode:
-        _set_value(user, key, value)
+        _set_value(key, value)
 
     print json.dumps({
         'changed': changed,
