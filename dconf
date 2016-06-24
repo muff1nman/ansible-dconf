@@ -8,12 +8,9 @@ from ansible.module_utils.basic import *
 
 DBUS_CMD = ["dbus-launch", "--exit-with-session", "/usr/bin/dconf"]
 
-def _escape_single_quotes(string):
-    return re.sub("'", r"'\''", string)
-
 def _set_value(key, value):
 
-    command = ['write', key, "'%s'" % _escape_single_quotes(value)]
+    command = ['write', key, "%s" % value]
 
     return _run_dbus_command(command)
 
@@ -32,6 +29,7 @@ def main():
             'state': { 'choices': ['present'], 'default': 'present' },
             'key': { 'required': True },
             'value': { 'required': True },
+            'quote': { 'choices': ['yes','no'], 'default': 'no' }
         },
         supports_check_mode = True,
     )
@@ -40,6 +38,9 @@ def main():
     state = module.params['state']
     key = module.params['key']
     value = module.params['value']
+    quote = module.params['quote']
+    if quote == 'yes':
+        value = "'%s'" % value
 
     old_value = _get_value(key)
     changed = old_value != value
