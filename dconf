@@ -3,10 +3,11 @@
 import json
 import re
 import subprocess
+import os
 
 from ansible.module_utils.basic import *
 
-DBUS_CMD = ["dbus-launch", "--exit-with-session", "/usr/bin/dconf"]
+DBUS_CMD = ["dbus-launch", "/usr/bin/dconf"]
 
 def _set_value(key, value):
 
@@ -20,7 +21,9 @@ def _get_value(key):
     return _run_dbus_command(command)
 
 def _run_dbus_command(args):
-    return subprocess.check_output(DBUS_CMD + args).strip()
+    my_env = os.environ.copy()
+    del my_env["DBUS_SESSION_BUS_ADDRESS"]
+    return subprocess.check_output(DBUS_CMD + args, env=my_env).strip()
 
 def main():
 
