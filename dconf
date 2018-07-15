@@ -23,7 +23,7 @@ def _get_value(key):
 def _run_dbus_command(args):
     my_env = os.environ.copy()
     my_env.pop("DBUS_SESSION_BUS_ADDRESS", None)
-    return subprocess.check_output(DBUS_CMD + args, env=my_env).strip()
+    return subprocess.check_output(DBUS_CMD + args, env=my_env).decode("utf-8").strip()
 
 def main():
 
